@@ -1,0 +1,49 @@
+const express = require('express');
+const Web3 = require('web3');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+// Connect to Ethereum blockchain
+const web3 = new Web3(new Web3.providers.HttpProvider('https://mainnet.infura.io/v3/YOUR_INFURA_PROJECT_ID'));
+
+// Smart contract details
+const contractABI = [ /* Your Smart Contract ABI */ ];
+const contractAddress = 'YOUR_CONTRACT_ADDRESS';
+const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+// Your account details (make sure to store private key securely)
+const account = 'YOUR_WALLET_ADDRESS';
+const privateKey = 'YOUR_PRIVATE_KEY';
+
+app.post('/data', async (req, res) => {
+  const { temperature, humidity, latitude, longitude } = req.body;
+
+  try {
+    // Encode function call to smart contract
+    const data = contract.methods.storeSensorData(temperature, humidity, latitude, longitude).encodeABI();
+    
+    // Create the transaction object
+    const tx = {
+      to: contractAddress,
+      gas: 2000000,
+      data: data,
+    };
+    
+    // Sign the transaction
+    const signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+    
+    // Send the transaction
+    const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+    
+    res.status(200).send({ message: 'Data stored on blockchain', transactionHash: receipt.transactionHash });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: 'Error storing data on blockchain' });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
+});
