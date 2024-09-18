@@ -1,0 +1,29 @@
+module CropQualityCheck(
+    input [7:0] temperature,  // Input for Temperature sensor (8-bit data)
+    input [7:0] pH,           // Input for pH sensor (8-bit data)
+    input [7:0] moisture,     // Input for Soil Moisture sensor (8-bit data)
+    output reg quality        // Output: 1 for Good Quality, 0 for Bad Quality
+);
+
+// Define acceptable range for each sensor
+parameter TEMP_MIN = 8'd18;    // Minimum acceptable temperature
+parameter TEMP_MAX = 8'd30;    // Maximum acceptable temperature
+parameter PH_MIN   = 8'd5;     // Minimum acceptable pH
+parameter PH_MAX   = 8'd7;     // Maximum acceptable pH
+parameter MOIST_MIN = 8'd30;   // Minimum acceptable soil moisture
+parameter MOIST_MAX = 8'd60;   // Maximum acceptable soil moisture
+
+always @ (temperature or pH or moisture) begin
+    if ((temperature >= TEMP_MIN && temperature <= TEMP_MAX) && 
+        (pH >= PH_MIN && pH <= PH_MAX) && 
+        (moisture >= MOIST_MIN && moisture <= MOIST_MAX)) 
+    begin
+        quality = 1;  // Good Quality
+    end 
+    else 
+    begin
+        quality = 0;  // Bad Quality
+    end
+end
+
+endmodule
